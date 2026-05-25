@@ -12,7 +12,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LayoutComponent {
 
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   private router = inject(Router);
 
   isSidebarCollapsed = signal(false);
