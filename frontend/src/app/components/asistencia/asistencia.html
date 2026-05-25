@@ -1,0 +1,95 @@
+<div class="attendance-container">
+  <div class="attendance-header-panel">
+    <div class="date-info">
+      <h2>Control de Asistencia Diario</h2>
+      <p class="today-text">{{ fechaHoy() }}</p>
+    </div>
+
+    <div class="clock-box panel-card">
+      <h4>Reloj Marcador Personal</h4>
+      <div class="clock-actions">
+        <button (click)="marcarAsistencia('entrada')" class="btn-clock-in">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-clock">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          Registrar Entrada
+        </button>
+        <button (click)="marcarAsistencia('salida')" class="btn-clock-out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-clock">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Registrar Salida
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="attendance-stats">
+    <div class="stat-card">
+      <span class="stat-label">Puntualidad General</span>
+      <strong class="stat-value">{{ tasaPuntualidad() | number:'1.0-1' }}%</strong>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Tardanzas Registradas</span>
+      <strong class="stat-value orange-text">{{ totalTardanzas() }}</strong>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Faltas Hoy</span>
+      <strong class="stat-value red-text">{{ totalFaltas() }}</strong>
+    </div>
+  </div>
+
+  <div class="panel-card table-panel">
+    <div class="table-header">
+      <h3>Registro de Ingreso y Salida</h3>
+      <div class="filters">
+        <label for="filterSelect">Filtrar:</label>
+        <select id="filterSelect" [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)"
+          class="filter-dropdown">
+          <option value="Todos">Todos los Estados</option>
+          <option value="Puntual">Puntuales</option>
+          <option value="Tardanza">Tardanzas</option>
+          <option value="Falta">Faltas</option>
+          <option value="Permiso">Permisos</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>Colaborador</th>
+            <th>Fecha</th>
+            <th>Hora Entrada</th>
+            <th>Hora Salida</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let asis of asistenciasFiltradas()">
+            <td>
+              <div class="emp-name-cell">
+                <div class="avatar-sm">{{ asis.empleado.charAt(0) }}</div>
+                <span>{{ asis.empleado }}</span>
+              </div>
+            </td>
+            <td>{{ asis.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ asis.entrada }}</td>
+            <td>{{ asis.salida }}</td>
+            <td>
+              <span class="status-badge" [class]="asis.estado.toLowerCase()">
+                {{ asis.estado }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="asistenciasFiltradas().length === 0">
+            <td colspan="5" class="empty-state">No hay registros que coincidan con el filtro.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

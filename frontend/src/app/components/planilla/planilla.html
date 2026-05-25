@@ -1,0 +1,145 @@
+<div class="payroll-container">
+  <div class="summary-cards">
+    <div class="summary-card">
+      <span class="card-label">Sueldo Base Total</span>
+      <strong class="card-value">S/ {{ totalSueldoBase() | number:'1.2-2' }}</strong>
+    </div>
+    <div class="summary-card">
+      <span class="card-label">Total Retenciones (AFP)</span>
+      <strong class="card-value red-text">S/ {{ totalDescuentos() | number:'1.2-2' }}</strong>
+    </div>
+    <div class="summary-card highlight">
+      <span class="card-label">Monto Neto a Pagar</span>
+      <strong class="card-value green-text">S/ {{ totalPlanilla() | number:'1.2-2' }}</strong>
+    </div>
+  </div>
+
+  <div class="payroll-content">
+    <div class="panel-card form-panel">
+      <h3>Registrar Empleado en Planilla</h3>
+      <form (ngSubmit)="agregarEmpleado()" class="payroll-form">
+        <div class="form-group">
+          <label for="nombre">Nombre Completo</label>
+          <input type="text" id="nombre" name="nombre" [ngModel]="nuevoNombre()"
+            (ngModelChange)="nuevoNombre.set($event)" placeholder="Ej. Luis Pérez" required />
+        </div>
+
+        <div class="form-group">
+          <label for="categoria">Categoría del Cargo</label>
+          <select id="categoria" name="categoria" [ngModel]="categoriaSeleccionada()"
+            (ngModelChange)="onCategoriaChange($event)" required>
+            <option value="" disabled selected>Seleccione área/categoría</option>
+            <option *ngFor="let cat of categoriasCargo" [value]="cat.id">{{ cat.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="categoriaSeleccionada()">
+          <label for="subcargo">Cargo Específico</label>
+          <select id="subcargo" name="subcargo" [ngModel]="subcargoSeleccionado()"
+            (ngModelChange)="subcargoSeleccionado.set($event)" required>
+            <option value="" disabled selected>Seleccione cargo específico</option>
+            <option *ngFor="let sub of getSubcargos()" [value]="sub">{{ sub }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="sueldo">Sueldo Base (S/)</label>
+          <input type="number" id="sueldo" name="sueldo" [ngModel]="nuevoSueldo()"
+            (ngModelChange)="nuevoSueldo.set($event)" placeholder="3500" required />
+        </div>
+
+        <div class="form-group">
+          <label for="tipoTrabajo">Tipo de Trabajo</label>
+          <select id="tipoTrabajo" name="tipoTrabajo" [ngModel]="tipoTrabajo()" (ngModelChange)="tipoTrabajo.set($event)">
+            <option value="Planilla">Planilla (Regular)</option>
+            <option value="Honorarios">Honorarios (Recibo por Honorarios / Practicante)</option>
+          </select>
+        </div>
+
+        <div *ngIf="tipoTrabajo() === 'Planilla'">
+          <div class="form-group checkbox-group">
+            <label class="checkbox-container">
+              <input type="checkbox" name="asigFam" [ngModel]="nuevoAsigFam()"
+                (ngModelChange)="nuevoAsigFam.set($event)" />
+              <span class="checkmark"></span>
+              Asignación Familiar (S/ 102.50)
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="afp">Fondo de Pensiones (AFP)</label>
+            <select id="afp" name="afp" [ngModel]="nuevoAfp()" (ngModelChange)="nuevoAfp.set($event)">
+              <option [value]="0.12">AFP Integra (12%)</option>
+              <option [value]="0.128">AFP Prima (12.8%)</option>
+              <option [value]="0.119">AFP Profuturo (11.9%)</option>
+              <option [value]="0.13">ONP (13%)</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary">Registrar en Planilla</button>
+      </form>
+    </div>
+
+    <div class="panel-card table-panel">
+      <div class="table-header">
+        <h3>Detalle de Planilla Mensual</h3>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-btn">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Exportar PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="payroll-table">
+          <thead>
+            <tr>
+              <th>Empleado</th>
+              <th>Cargo</th>
+              <th>Sueldo Base</th>
+              <th>Asig. Fam.</th>
+              <th>H. Extra</th>
+              <th>Descuentos</th>
+              <th>Neto a Recibir</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let emp of empleados()">
+              <td>
+                <div class="emp-name-cell">
+                  <div class="avatar-sm">{{ emp.nombre.charAt(0) }}</div>
+                  <span>{{ emp.nombre }}</span>
+                </div>
+              </td>
+              <td><span class="badge-role">{{ emp.cargo }}</span></td>
+              <td>S/ {{ emp.sueldoBase | number:'1.2-2' }}</td>
+              <td>S/ {{ emp.asignacionFamiliar | number:'1.2-2' }}</td>
+              <td>S/ {{ emp.horasExtra | number:'1.2-2' }}</td>
+              <td class="red-text">S/ {{ calcularDescuentos(emp) | number:'1.2-2' }} ({{ emp.tasaAfp * 100 |
+                number:'1.1-1' }}%)</td>
+              <td class="green-text font-bold">S/ {{ calcularNeto(emp) | number:'1.2-2' }}</td>
+              <td>
+                <button (click)="eliminarEmpleado(emp.id)" class="btn-delete" title="Eliminar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="empleados().length === 0">
+              <td colspan="8" class="empty-state">No hay empleados registrados en la planilla.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

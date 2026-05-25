@@ -1,0 +1,99 @@
+<div class="vacations-container">
+
+  <!-- Header con botón -->
+  <div class="vacations-header">
+    <div>
+      <h2>Control de Vacaciones</h2>
+      <p class="subtitle">Gestión de solicitudes del personal en planilla</p>
+    </div>
+    <button class="btn-primary" (click)="mostrarModal.set(true)">+ Nueva Solicitud</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Registrar Solicitud de Vacaciones</h3>
+        <button class="btn-close" (click)="cerrarModal()">✕</button>
+      </div>
+      <form (ngSubmit)="crearSolicitud()" class="vacation-form">
+        <div class="form-group">
+          <label>Seleccionar Colaborador</label>
+          <select [ngModel]="empleadoSeleccionado()" (ngModelChange)="empleadoSeleccionado.set(+$event)" name="empleado"
+            required>
+            <option [value]="null" disabled selected>Seleccione un empleado</option>
+            <option *ngFor="let bal of balances()" [value]="bal.idemp">{{ bal.empleado }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Días Hábiles (Lun - Vie)</label>
+          <input type="number" [ngModel]="diasSolicitados()" name="dias" placeholder="Se calcula automáticamente"
+            readonly style="opacity: 0.7; cursor: not-allowed;" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha Inicio</label>
+            <input type="date" [ngModel]="fechaInicio()" (ngModelChange)="fechaInicio.set($event)" name="inicio"
+              required />
+          </div>
+          <div class="form-group">
+            <label>Fecha Fin</label>
+            <input type="date" [ngModel]="fechaFin()" (ngModelChange)="fechaFin.set($event)" name="fin" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Registrar Solicitud</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Historial -->
+  <div class="panel-card history-panel">
+    <h3>Historial de Solicitudes de Vacaciones</h3>
+    <div class="table-wrapper">
+      <table class="vacation-table">
+        <thead>
+          <tr>
+            <th>Colaborador</th>
+            <th>Días</th>
+            <th>Período</th>
+            <th>Estado</th>
+            <th>Acciones de Aprobación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sol of solicitudes()">
+            <td><strong>{{ sol.empleado }}</strong></td>
+            <td>{{ sol.dias }} días</td>
+            <td>{{ sol.fechaInicio | date:'dd/MM/yyyy':'UTC' }} al {{ sol.fechaFin | date:'dd/MM/yyyy':'UTC' }}
+            </td>
+            <td>
+              <span class="status-badge" [class]="sol.estado.toLowerCase()">{{ sol.estado }}</span>
+            </td>
+            <td>
+              <div class="action-buttons" *ngIf="sol.estado === 'Pendiente'">
+                <button (click)="aprobarSolicitud(sol.id)" class="btn-approve">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-action">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Aprobar
+                </button>
+                <button (click)="rechazarSolicitud(sol.id)" class="btn-reject">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-action">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                  Rechazar
+                </button>
+              </div>
+              <span *ngIf="sol.estado !== 'Pendiente'" class="text-muted">Procesado</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
